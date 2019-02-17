@@ -12,18 +12,16 @@ package org.junit.platform.engine.support.discovery;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
-import static java.util.Collections.unmodifiableSet;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apiguardian.api.API;
+import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
@@ -34,9 +32,9 @@ import org.junit.platform.engine.UniqueId;
 @API(status = EXPERIMENTAL, since = "1.4")
 public interface SelectorResolver {
 
-	Optional<Result> resolveSelector(DiscoverySelector selector, Context context);
+	Resolution resolveSelector(DiscoverySelector selector, Context context);
 
-	Optional<Result> resolveUniqueId(UniqueId uniqueId, Context context);
+	Resolution resolveUniqueId(UniqueId uniqueId, Context context);
 
 	/**
 	 * @since 1.4
@@ -55,44 +53,40 @@ public interface SelectorResolver {
 	 * @since 1.4
 	 */
 	@API(status = EXPERIMENTAL, since = "1.4")
-	class Result {
+	class Resolution {
+
+		private static final Resolution UNRESOLVED = new Resolution(emptySet(), emptySet());
+
 		private final Set<Match> matches;
 		private final Set<? extends DiscoverySelector> additionalSelectors;
-		private boolean perfectMatch = true;
 
-		public static Result of(Match match) {
-			return new Result(singleton(match), emptySet());
+		public static Resolution unresolved() {
+			return UNRESOLVED;
 		}
 
-		public static Result of(Collection<Match> matches) {
-			return of(matches, emptySet());
+		public static Resolution match(Match match) {
+			return new Resolution(singleton(match), emptySet());
 		}
 
-		public static Result of(Set<? extends DiscoverySelector> additionalSelectors) {
-			return new Result(emptySet(), additionalSelectors);
+		public static Resolution matches(Set<Match> matches) {
+			Preconditions.containsNoNullElements(matches, "matches must not contain null elements");
+			Preconditions.notEmpty(matches, "matches must not be empty");
+			return new Resolution(matches, emptySet());
 		}
 
-		public static Result of(Collection<Match> matches, Set<? extends DiscoverySelector> additionalSelectors) {
-			return new Result(unmodifiableSet(new LinkedHashSet<>(matches)), additionalSelectors);
+		public static Resolution selectors(Set<? extends DiscoverySelector> selectors) {
+			Preconditions.containsNoNullElements(selectors, "selectors must not contain null elements");
+			Preconditions.notEmpty(selectors, "selectors must not be empty");
+			return new Resolution(emptySet(), selectors);
 		}
 
-		private Result(Set<Match> matches, Set<? extends DiscoverySelector> additionalSelectors) {
-			// TODO validate not both empty
+		private Resolution(Set<Match> matches, Set<? extends DiscoverySelector> additionalSelectors) {
 			this.matches = matches;
 			this.additionalSelectors = additionalSelectors;
 		}
 
-		public boolean isPerfectMatch() {
-			return perfectMatch;
-		}
-
-		public Result withPerfectMatch(boolean perfectMatch) {
-			if (this.perfectMatch == perfectMatch) {
-				return this;
-			}
-			Result result = new Result(matches, additionalSelectors);
-			result.perfectMatch = perfectMatch;
-			return result;
+		public boolean isResolved() {
+			return this != UNRESOLVED;
 		}
 
 		public Set<Match> getMatches() {
@@ -111,28 +105,47 @@ public interface SelectorResolver {
 	class Match {
 		private final TestDescriptor testDescriptor;
 		private final Supplier<Set<? extends DiscoverySelector>> childSelectorsSupplier;
+		private final Type type;
 
-		public static Match of(TestDescriptor testDescriptor) {
-			return new Match(testDescriptor, Collections::emptySet);
+		public static Match exact(TestDescriptor testDescriptor) {
+			return exact(testDescriptor, Collections::emptySet);
 		}
 
-		public static Match of(TestDescriptor testDescriptor,
+		public static Match exact(TestDescriptor testDescriptor,
 				Supplier<Set<? extends DiscoverySelector>> childSelectorsSupplier) {
-			return new Match(testDescriptor, childSelectorsSupplier);
+			return new Match(testDescriptor, childSelectorsSupplier, Type.EXACT);
 		}
 
-		private Match(TestDescriptor testDescriptor,
+		public static Match partial(TestDescriptor testDescriptor) {
+			return partial(testDescriptor, Collections::emptySet);
+		}
+
+		public static Match partial(TestDescriptor testDescriptor,
 				Supplier<Set<? extends DiscoverySelector>> childSelectorsSupplier) {
+			return new Match(testDescriptor, childSelectorsSupplier, Type.PARTIAL);
+		}
+
+		private Match(TestDescriptor testDescriptor, Supplier<Set<? extends DiscoverySelector>> childSelectorsSupplier,
+				Type type) {
 			this.testDescriptor = testDescriptor;
 			this.childSelectorsSupplier = childSelectorsSupplier;
+			this.type = type;
+		}
+
+		public boolean isExact() {
+			return type == Type.EXACT;
 		}
 
 		public TestDescriptor getTestDescriptor() {
 			return testDescriptor;
 		}
 
-		public Set<? extends DiscoverySelector> getChildSelectors() {
+		public Set<? extends DiscoverySelector> expand() {
 			return childSelectorsSupplier.get();
+		}
+
+		private enum Type {
+			EXACT, PARTIAL
 		}
 	}
 

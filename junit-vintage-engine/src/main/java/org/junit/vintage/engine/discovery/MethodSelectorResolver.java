@@ -12,6 +12,7 @@ package org.junit.vintage.engine.discovery;
 
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectUniqueId;
+import static org.junit.platform.engine.support.discovery.SelectorResolver.Resolution.unresolved;
 import static org.junit.vintage.engine.descriptor.VintageTestDescriptor.SEGMENT_TYPE_RUNNER;
 
 import java.lang.reflect.Method;
@@ -33,32 +34,33 @@ import org.junit.vintage.engine.descriptor.RunnerTestDescriptor;
 class MethodSelectorResolver implements SelectorResolver {
 
 	@Override
-	public Optional<Result> resolveSelector(DiscoverySelector selector, Context context) {
+	public Resolution resolveSelector(DiscoverySelector selector, Context context) {
 		if (selector instanceof MethodSelector) {
 			return resolveMethodSelector((MethodSelector) selector, context);
 		}
-		return Optional.empty();
+		return unresolved();
 	}
 
-	private Optional<Result> resolveMethodSelector(MethodSelector methodSelector, Context context) {
+	private Resolution resolveMethodSelector(MethodSelector methodSelector, Context context) {
 		Class<?> testClass = methodSelector.getJavaClass();
 		return resolveParentAndAddFilter(context, selectClass(testClass), parent -> toMethodFilter(methodSelector));
 	}
 
 	@Override
-	public Optional<Result> resolveUniqueId(UniqueId uniqueId, Context context) {
+	public Resolution resolveUniqueId(UniqueId uniqueId, Context context) {
 		for (UniqueId current = uniqueId; !current.getSegments().isEmpty(); current = current.removeLastSegment()) {
 			if (SEGMENT_TYPE_RUNNER.equals(current.getLastSegment().getType())) {
 				return resolveParentAndAddFilter(context, selectUniqueId(current),
 					parent -> toUniqueIdFilter(parent, uniqueId));
 			}
 		}
-		return Optional.empty();
+		return unresolved();
 	}
 
-	private Optional<Result> resolveParentAndAddFilter(Context context, DiscoverySelector selector,
+	private Resolution resolveParentAndAddFilter(Context context, DiscoverySelector selector,
 			Function<RunnerTestDescriptor, Filter> filterCreator) {
-		return context.resolve(selector).flatMap(parent -> addFilter(parent, filterCreator)).map(this::toResult);
+		return context.resolve(selector).flatMap(parent -> addFilter(parent, filterCreator)).map(
+			this::toResolution).orElse(unresolved());
 	}
 
 	private Optional<RunnerTestDescriptor> addFilter(TestDescriptor parent,
@@ -72,8 +74,8 @@ class MethodSelectorResolver implements SelectorResolver {
 		return Optional.empty();
 	}
 
-	private Result toResult(RunnerTestDescriptor parent) {
-		return Result.of(Match.of(parent)).withPerfectMatch(false);
+	private Resolution toResolution(RunnerTestDescriptor parent) {
+		return Resolution.match(Match.partial(parent));
 	}
 
 	private Filter toMethodFilter(MethodSelector methodSelector) {

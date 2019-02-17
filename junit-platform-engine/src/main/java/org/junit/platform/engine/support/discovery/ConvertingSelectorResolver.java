@@ -11,8 +11,9 @@
 package org.junit.platform.engine.support.discovery;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.junit.platform.engine.support.discovery.SelectorResolver.Resolution.selectors;
+import static org.junit.platform.engine.support.discovery.SelectorResolver.Resolution.unresolved;
 
-import java.util.Optional;
 import java.util.Set;
 
 import org.apiguardian.api.API;
@@ -26,18 +27,18 @@ import org.junit.platform.engine.UniqueId;
 public abstract class ConvertingSelectorResolver implements SelectorResolver {
 
 	@Override
-	public Optional<Result> resolveSelector(DiscoverySelector selector, Context context) {
+	public Resolution resolveSelector(DiscoverySelector selector, Context context) {
 		Set<? extends DiscoverySelector> selectors = convert(selector);
 		if (selectors.isEmpty()) {
-			return Optional.empty();
+			return unresolved();
 		}
-		return Optional.of(Result.of(selectors));
+		return selectors(selectors);
 	}
 
 	protected abstract Set<? extends DiscoverySelector> convert(DiscoverySelector selector);
 
 	@Override
-	public Optional<Result> resolveUniqueId(UniqueId uniqueId, Context context) {
-		return Optional.empty();
+	public Resolution resolveUniqueId(UniqueId uniqueId, Context context) {
+		return unresolved();
 	}
 }

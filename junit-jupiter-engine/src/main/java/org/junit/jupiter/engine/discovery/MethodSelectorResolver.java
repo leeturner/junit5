@@ -12,16 +12,19 @@ package org.junit.jupiter.engine.discovery;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectUniqueId;
+import static org.junit.platform.engine.support.discovery.SelectorResolver.Resolution.matches;
+import static org.junit.platform.engine.support.discovery.SelectorResolver.Resolution.unresolved;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.engine.config.JupiterConfiguration;
@@ -55,21 +58,21 @@ class MethodSelectorResolver implements SelectorResolver {
 	}
 
 	@Override
-	public Optional<Result> resolveSelector(DiscoverySelector selector, Context context) {
+	public Resolution resolveSelector(DiscoverySelector selector, Context context) {
 		if (selector instanceof MethodSelector) {
 			return resolveMethodSelector((MethodSelector) selector, context);
 		}
-		return Optional.empty();
+		return unresolved();
 	}
 
-	private Optional<Result> resolveMethodSelector(MethodSelector selector, Context context) {
+	private Resolution resolveMethodSelector(MethodSelector selector, Context context) {
 		// @formatter:off
-		List<Match> matches = Arrays.stream(MethodType.values())
+		Set<Match> matches = Arrays.stream(MethodType.values())
 				.map(methodType -> methodType.resolveMethodSelector(selector, context, configuration))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
-				.map(this::toMatch)
-				.collect(toList());
+				.map(testDescriptor -> Match.exact(testDescriptor, expansionCallback(testDescriptor)))
+				.collect(toSet());
 		// @formatter:on
 		if (matches.size() > 1) {
 			logger.warn(() -> {
@@ -82,40 +85,41 @@ class MethodSelectorResolver implements SelectorResolver {
 					testDescriptors.map(d -> d.getClass().getName()).collect(toList()));
 			});
 		}
-		return matches.isEmpty() ? Optional.empty() : Optional.of(Result.of(matches));
+		return matches.isEmpty() ? unresolved() : matches(matches);
 	}
 
 	@Override
-	public Optional<Result> resolveUniqueId(UniqueId uniqueId, Context context) {
+	public Resolution resolveUniqueId(UniqueId uniqueId, Context context) {
 		// @formatter:off
 		return Arrays.stream(MethodType.values())
 				.map(methodType -> methodType.resolveUniqueIdIntoTestDescriptor(uniqueId, context, configuration))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.map(testDescriptor -> {
-					boolean perfectMatch = uniqueId.equals(testDescriptor.getUniqueId());
+					boolean exactMatch = uniqueId.equals(testDescriptor.getUniqueId());
 					if (testDescriptor instanceof Filterable) {
 						Filterable filterable = (Filterable) testDescriptor;
-						if (perfectMatch) {
+						if (exactMatch) {
 							filterable.getDynamicDescendantFilter().allowAll();
 						}
 						else {
 							filterable.getDynamicDescendantFilter().allow(uniqueId);
 						}
 					}
-					return Result.of(toMatch(testDescriptor)).withPerfectMatch(perfectMatch);
+					return Resolution.match(exactMatch ? Match.exact(testDescriptor) : Match.partial(testDescriptor, expansionCallback(testDescriptor)));
 				})
-				.findFirst();
+				.findFirst()
+				.orElse(unresolved());
 		// @formatter:on
 	}
 
-	private Match toMatch(TestDescriptor testDescriptor) {
-		return Match.of(testDescriptor, () -> {
+	private Supplier<Set<? extends DiscoverySelector>> expansionCallback(TestDescriptor testDescriptor) {
+		return () -> {
 			if (testDescriptor instanceof Filterable) {
 				((Filterable) testDescriptor).getDynamicDescendantFilter().allowAll();
 			}
 			return emptySet();
-		});
+		};
 	}
 
 	private enum MethodType {

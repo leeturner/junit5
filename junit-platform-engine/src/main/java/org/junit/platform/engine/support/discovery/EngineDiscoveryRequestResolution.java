@@ -36,7 +36,7 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver.Context;
 import org.junit.platform.engine.support.discovery.SelectorResolver.Match;
-import org.junit.platform.engine.support.discovery.SelectorResolver.Result;
+import org.junit.platform.engine.support.discovery.SelectorResolver.Resolution;
 
 class EngineDiscoveryRequestResolution {
 
@@ -46,7 +46,7 @@ class EngineDiscoveryRequestResolution {
 	private final List<SelectorResolver> resolvers;
 	private final List<TestDescriptor.Visitor> visitors;
 	private final TestDescriptor engineDescriptor;
-	private final Map<DiscoverySelector, Result> resolvedSelectors = new LinkedHashMap<>();
+	private final Map<DiscoverySelector, Resolution> resolvedSelectors = new LinkedHashMap<>();
 	private final Map<UniqueId, Match> resolvedUniqueIds = new LinkedHashMap<>();
 	private final Queue<DiscoverySelector> remainingSelectors = new LinkedList<>();
 	private final Map<DiscoverySelector, Context> contextBySelector = new HashMap<>();
@@ -59,7 +59,7 @@ class EngineDiscoveryRequestResolution {
 		this.resolvers = resolvers;
 		this.visitors = visitors;
 		this.defaultContext = new DefaultContext(null);
-		this.resolvedUniqueIds.put(engineDescriptor.getUniqueId(), Match.of(engineDescriptor));
+		this.resolvedUniqueIds.put(engineDescriptor.getUniqueId(), Match.exact(engineDescriptor));
 	}
 
 	void run() {
@@ -72,7 +72,7 @@ class EngineDiscoveryRequestResolution {
 
 	private void resolveCompletely(DiscoverySelector selector) {
 		try {
-			Optional<Result> result = resolve(selector);
+			Optional<Resolution> result = resolve(selector);
 			if (result.isPresent()) {
 				enqueueAdditionalSelectors(result.get());
 			}
@@ -86,22 +86,20 @@ class EngineDiscoveryRequestResolution {
 		}
 	}
 
-	private void enqueueAdditionalSelectors(Result result) {
-		Set<? extends DiscoverySelector> additionalSelectors = result.getAdditionalSelectors();
+	private void enqueueAdditionalSelectors(Resolution resolution) {
+		Set<? extends DiscoverySelector> additionalSelectors = resolution.getAdditionalSelectors();
 		remainingSelectors.addAll(additionalSelectors);
-		if (result.isPerfectMatch()) {
-			result.getMatches().forEach(match -> {
-				Set<? extends DiscoverySelector> childSelectors = match.getChildSelectors();
-				if (!childSelectors.isEmpty()) {
-					remainingSelectors.addAll(childSelectors);
-					DefaultContext context = new DefaultContext(match.getTestDescriptor());
-					childSelectors.forEach(selector -> contextBySelector.put(selector, context));
-				}
-			});
-		}
+		resolution.getMatches().stream().filter(Match::isExact).forEach(match -> {
+			Set<? extends DiscoverySelector> childSelectors = match.expand();
+			if (!childSelectors.isEmpty()) {
+				remainingSelectors.addAll(childSelectors);
+				DefaultContext context = new DefaultContext(match.getTestDescriptor());
+				childSelectors.forEach(selector -> contextBySelector.put(selector, context));
+			}
+		});
 	}
 
-	private Optional<Result> resolve(DiscoverySelector selector) {
+	private Optional<Resolution> resolve(DiscoverySelector selector) {
 		if (resolvedSelectors.containsKey(selector)) {
 			return Optional.of(resolvedSelectors.get(selector));
 		}
@@ -111,9 +109,9 @@ class EngineDiscoveryRequestResolution {
 		return resolve(selector, resolver -> resolver.resolveSelector(selector, getContext(selector)));
 	}
 
-	private Optional<Result> resolveUniqueId(DiscoverySelector selector, UniqueId uniqueId) {
+	private Optional<Resolution> resolveUniqueId(DiscoverySelector selector, UniqueId uniqueId) {
 		if (resolvedUniqueIds.containsKey(uniqueId)) {
-			return Optional.of(Result.of(resolvedUniqueIds.get(uniqueId)));
+			return Optional.of(Resolution.match(resolvedUniqueIds.get(uniqueId)));
 		}
 		if (!uniqueId.hasPrefix(engineDescriptor.getUniqueId())) {
 			return Optional.empty();
@@ -125,20 +123,19 @@ class EngineDiscoveryRequestResolution {
 		return contextBySelector.getOrDefault(selector, defaultContext);
 	}
 
-	private Optional<Result> resolve(DiscoverySelector selector,
-			Function<SelectorResolver, Optional<Result>> resolutionFunction) {
+	private Optional<Resolution> resolve(DiscoverySelector selector,
+			Function<SelectorResolver, Resolution> resolutionFunction) {
 		// @formatter:off
 		return resolvers.stream()
 				.map(resolutionFunction)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
+				.filter(Resolution::isResolved)
 				.findFirst()
-				.map(result -> {
+				.map(resolution -> {
 					contextBySelector.remove(selector);
-					resolvedSelectors.put(selector, result);
-					result.getMatches()
+					resolvedSelectors.put(selector, resolution);
+					resolution.getMatches()
 							.forEach(match -> resolvedUniqueIds.put(match.getTestDescriptor().getUniqueId(), match));
-					return result;
+					return resolution;
 				});
 		// @formatter:on
 	}
@@ -185,7 +182,7 @@ class EngineDiscoveryRequestResolution {
 		public Optional<TestDescriptor> resolve(DiscoverySelector selector) {
 			// @formatter:off
 			return EngineDiscoveryRequestResolution.this.resolve(selector)
-					.map(Result::getMatches)
+					.map(Resolution::getMatches)
 					.flatMap(matches -> {
 						if (matches.size() > 1) {
 							String stringRepresentation = matches.stream()

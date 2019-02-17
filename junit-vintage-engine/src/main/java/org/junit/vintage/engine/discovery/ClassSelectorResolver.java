@@ -11,6 +11,7 @@
 package org.junit.vintage.engine.discovery;
 
 import static java.util.Collections.emptySet;
+import static org.junit.platform.engine.support.discovery.SelectorResolver.Resolution.unresolved;
 import static org.junit.vintage.engine.descriptor.VintageTestDescriptor.SEGMENT_TYPE_RUNNER;
 
 import java.util.Optional;
@@ -42,15 +43,15 @@ class ClassSelectorResolver implements SelectorResolver {
 	}
 
 	@Override
-	public Optional<Result> resolveSelector(DiscoverySelector selector, Context context) {
+	public Resolution resolveSelector(DiscoverySelector selector, Context context) {
 		if (selector instanceof ClassSelector) {
 			return resolveTestClass(((ClassSelector) selector).getJavaClass(), context);
 		}
-		return Optional.empty();
+		return unresolved();
 	}
 
 	@Override
-	public Optional<Result> resolveUniqueId(UniqueId uniqueId, Context context) {
+	public Resolution resolveUniqueId(UniqueId uniqueId, Context context) {
 		Segment lastSegment = uniqueId.getLastSegment();
 		if (SEGMENT_TYPE_RUNNER.equals(lastSegment.getType())) {
 			String testClassName = lastSegment.getValue();
@@ -58,22 +59,22 @@ class ClassSelectorResolver implements SelectorResolver {
 					.getOrThrow(cause -> new JUnitException("Unknown class: " + testClassName, cause));
 			return resolveTestClass(testClass, context);
 		}
-		return Optional.empty();
+		return unresolved();
 	}
 
-	private Optional<Result> resolveTestClass(Class<?> testClass, Context context) {
+	private Resolution resolveTestClass(Class<?> testClass, Context context) {
 		if (!classFilter.test(testClass)) {
-			return Optional.empty();
+			return unresolved();
 		}
 		Runner runner = RUNNER_BUILDER.safeRunnerForClass(testClass);
 		if (runner == null) {
-			return Optional.empty();
+			return unresolved();
 		}
 		return context.addToParent(parent -> Optional.of(createRunnerTestDescriptor(parent, testClass, runner))).map(
-			runnerTestDescriptor -> Match.of(runnerTestDescriptor, () -> {
+			runnerTestDescriptor -> Match.exact(runnerTestDescriptor, () -> {
 				runnerTestDescriptor.clearFilters();
 				return emptySet();
-			})).map(Result::of);
+			})).map(Resolution::match).orElse(unresolved());
 	}
 
 	private RunnerTestDescriptor createRunnerTestDescriptor(TestDescriptor parent, Class<?> testClass, Runner runner) {
