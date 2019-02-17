@@ -33,7 +33,7 @@ public class DiscoverySelectorResolver {
 
 	// @formatter:off
 	private static final EngineDiscoveryRequestResolver<JupiterEngineDescriptor> resolver = EngineDiscoveryRequestResolver.<JupiterEngineDescriptor>builder()
-			.withDefaultsForClassBasedTestEngines(new IsTestClassWithTests())
+			.addClassContainerSelectorResolver(new IsTestClassWithTests())
 			.addSelectorResolver(context -> new ClassSelectorResolver(context.getClassNameFilter(), context.getEngineDescriptor().getConfiguration()))
 			.addSelectorResolver(context -> new MethodSelectorResolver(context.getEngineDescriptor().getConfiguration()))
 			.addTestDescriptorVisitor(context -> new MethodOrderingVisitor(context.getEngineDescriptor().getConfiguration()))

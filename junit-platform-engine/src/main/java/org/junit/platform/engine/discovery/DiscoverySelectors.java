@@ -21,7 +21,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -304,20 +303,6 @@ public final class DiscoverySelectors {
 	public static ClassSelector selectClass(Class<?> clazz) {
 		Preconditions.notNull(clazz, "Class must not be null");
 		return new ClassSelector(clazz);
-	}
-
-	/**
-	 * Create a list of {@code ClassSelectors} for the supplied {@linkplain Class classes}.
-	 *
-	 * @param classes the classes to select; never {@code null} or containing {@code null}
-	 * @see ClassSelector
-	 * @since 1.5
-	 */
-	@API(status = STABLE, since = "1.5")
-	public static List<ClassSelector> selectClasses(Collection<Class<?>> classes) {
-		Preconditions.notNull(classes, "Classes must not be null");
-		Preconditions.containsNoNullElements(classes, "Classes must not contain any null elements");
-		return classes.stream().map(DiscoverySelectors::selectClass).collect(toUnmodifiableList());
 	}
 
 	/**

@@ -31,7 +31,7 @@ public class VintageDiscoverer {
 
 	// @formatter:off
 	private static final EngineDiscoveryRequestResolver<TestDescriptor> resolver = EngineDiscoveryRequestResolver.builder()
-			.withDefaultsForClassBasedTestEngines(isPotentialJUnit4TestClass)
+			.addClassContainerSelectorResolver(isPotentialJUnit4TestClass)
 			.addSelectorResolver(context -> new ClassSelectorResolver(ClassFilter.of(context.getClassNameFilter(), isPotentialJUnit4TestClass)))
 			.addSelectorResolver(new MethodSelectorResolver())
 			.build();

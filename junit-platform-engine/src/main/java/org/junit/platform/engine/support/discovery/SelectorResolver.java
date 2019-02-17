@@ -14,7 +14,6 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -108,7 +107,7 @@ public interface SelectorResolver {
 		private static final Resolution UNRESOLVED = new Resolution(emptySet(), emptySet());
 
 		private final Set<Match> matches;
-		private final Collection<? extends DiscoverySelector> additionalSelectors;
+		private final Set<? extends DiscoverySelector> additionalSelectors;
 
 		public static Resolution unresolved() {
 			return UNRESOLVED;
@@ -124,13 +123,13 @@ public interface SelectorResolver {
 			return new Resolution(matches, emptySet());
 		}
 
-		public static Resolution selectors(Collection<? extends DiscoverySelector> selectors) {
+		public static Resolution selectors(Set<? extends DiscoverySelector> selectors) {
 			Preconditions.containsNoNullElements(selectors, "selectors must not contain null elements");
 			Preconditions.notEmpty(selectors, "selectors must not be empty");
 			return new Resolution(emptySet(), selectors);
 		}
 
-		private Resolution(Set<Match> matches, Collection<? extends DiscoverySelector> additionalSelectors) {
+		private Resolution(Set<Match> matches, Set<? extends DiscoverySelector> additionalSelectors) {
 			this.matches = matches;
 			this.additionalSelectors = additionalSelectors;
 		}
@@ -143,7 +142,7 @@ public interface SelectorResolver {
 			return matches;
 		}
 
-		public Collection<? extends DiscoverySelector> getAdditionalSelectors() {
+		public Set<? extends DiscoverySelector> getAdditionalSelectors() {
 			return additionalSelectors;
 		}
 	}

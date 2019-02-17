@@ -60,25 +60,9 @@ public class EngineDiscoveryRequestResolver<T extends TestDescriptor> {
 		private Builder() {
 		}
 
-		public Builder<T> withDefaultsForClassBasedTestEngines(Predicate<Class<?>> classFilter) {
-			return addClassesInClasspathRootSelectorResolver(classFilter)//
-					.addClassesInModuleSelectorResolver(classFilter)//
-					.addClassesInPackageSelectorResolver(classFilter);
-		}
-
-		public Builder<T> addClassesInClasspathRootSelectorResolver(Predicate<Class<?>> classFilter) {
+		public Builder<T> addClassContainerSelectorResolver(Predicate<Class<?>> classFilter) {
 			return addSelectorResolver(
-				context -> new ClassesInClasspathRootSelectorResolver(context.getClassNameFilter(), classFilter));
-		}
-
-		public Builder<T> addClassesInPackageSelectorResolver(Predicate<Class<?>> classFilter) {
-			return addSelectorResolver(
-				context -> new ClassesInPackageSelectorResolver(context.getClassNameFilter(), classFilter));
-		}
-
-		public Builder<T> addClassesInModuleSelectorResolver(Predicate<Class<?>> classFilter) {
-			return addSelectorResolver(
-				context -> new ClassesInModuleSelectorResolver(context.getClassNameFilter(), classFilter));
+				context -> new ClassContainerSelectorResolver(classFilter, context.getClassNameFilter()));
 		}
 
 		public Builder<T> addSelectorResolver(SelectorResolver resolver) {

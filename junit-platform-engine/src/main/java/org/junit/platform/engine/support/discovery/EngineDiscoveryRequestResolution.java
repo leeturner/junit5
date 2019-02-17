@@ -194,6 +194,7 @@ class EngineDiscoveryRequestResolution {
 	}
 
 	private class DefaultContext implements Context {
+
 		private final TestDescriptor parent;
 
 		DefaultContext(TestDescriptor parent) {
@@ -252,6 +253,7 @@ class EngineDiscoveryRequestResolution {
 			child.ifPresent(parent::addChild);
 			return child;
 		}
+
 	}
 
 }
