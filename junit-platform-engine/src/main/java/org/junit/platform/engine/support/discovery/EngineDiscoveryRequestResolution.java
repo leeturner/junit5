@@ -33,7 +33,16 @@ import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
+import org.junit.platform.engine.discovery.ClassSelector;
+import org.junit.platform.engine.discovery.ClasspathResourceSelector;
+import org.junit.platform.engine.discovery.ClasspathRootSelector;
+import org.junit.platform.engine.discovery.DirectorySelector;
+import org.junit.platform.engine.discovery.FileSelector;
+import org.junit.platform.engine.discovery.MethodSelector;
+import org.junit.platform.engine.discovery.ModuleSelector;
+import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
+import org.junit.platform.engine.discovery.UriSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver.Context;
 import org.junit.platform.engine.support.discovery.SelectorResolver.Match;
 import org.junit.platform.engine.support.discovery.SelectorResolver.Resolution;
@@ -87,8 +96,7 @@ class EngineDiscoveryRequestResolution {
 	}
 
 	private void enqueueAdditionalSelectors(Resolution resolution) {
-		Set<? extends DiscoverySelector> additionalSelectors = resolution.getAdditionalSelectors();
-		remainingSelectors.addAll(additionalSelectors);
+		remainingSelectors.addAll(resolution.getAdditionalSelectors());
 		resolution.getMatches().stream().filter(Match::isExact).forEach(match -> {
 			Set<? extends DiscoverySelector> childSelectors = match.expand();
 			if (!childSelectors.isEmpty()) {
@@ -104,19 +112,50 @@ class EngineDiscoveryRequestResolution {
 			return Optional.of(resolvedSelectors.get(selector));
 		}
 		if (selector instanceof UniqueIdSelector) {
-			return resolveUniqueId(selector, ((UniqueIdSelector) selector).getUniqueId());
+			return resolveUniqueId((UniqueIdSelector) selector);
 		}
-		return resolve(selector, resolver -> resolver.resolveSelector(selector, getContext(selector)));
+		return resolve(selector, resolver -> {
+			Context context = getContext(selector);
+			if (selector instanceof ClasspathResourceSelector) {
+				return resolver.resolve((ClasspathResourceSelector) selector, context);
+			}
+			if (selector instanceof ClasspathRootSelector) {
+				return resolver.resolve((ClasspathRootSelector) selector, context);
+			}
+			if (selector instanceof ClassSelector) {
+				return resolver.resolve((ClassSelector) selector, context);
+			}
+			if (selector instanceof DirectorySelector) {
+				return resolver.resolve((DirectorySelector) selector, context);
+			}
+			if (selector instanceof FileSelector) {
+				return resolver.resolve((FileSelector) selector, context);
+			}
+			if (selector instanceof MethodSelector) {
+				return resolver.resolve((MethodSelector) selector, context);
+			}
+			if (selector instanceof ModuleSelector) {
+				return resolver.resolve((ModuleSelector) selector, context);
+			}
+			if (selector instanceof PackageSelector) {
+				return resolver.resolve((PackageSelector) selector, context);
+			}
+			if (selector instanceof UriSelector) {
+				return resolver.resolve((UriSelector) selector, context);
+			}
+			return resolver.resolve(selector, context);
+		});
 	}
 
-	private Optional<Resolution> resolveUniqueId(DiscoverySelector selector, UniqueId uniqueId) {
+	private Optional<Resolution> resolveUniqueId(UniqueIdSelector selector) {
+		UniqueId uniqueId = selector.getUniqueId();
 		if (resolvedUniqueIds.containsKey(uniqueId)) {
 			return Optional.of(Resolution.match(resolvedUniqueIds.get(uniqueId)));
 		}
 		if (!uniqueId.hasPrefix(engineDescriptor.getUniqueId())) {
 			return Optional.empty();
 		}
-		return resolve(selector, resolver -> resolver.resolveUniqueId(uniqueId, getContext(selector)));
+		return resolve(selector, resolver -> resolver.resolve(selector, getContext(selector)));
 	}
 
 	private Context getContext(DiscoverySelector selector) {

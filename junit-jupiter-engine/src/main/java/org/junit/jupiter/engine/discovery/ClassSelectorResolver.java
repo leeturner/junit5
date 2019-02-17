@@ -40,6 +40,7 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.MethodSelector;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
 
 class ClassSelectorResolver implements SelectorResolver {
@@ -56,26 +57,25 @@ class ClassSelectorResolver implements SelectorResolver {
 	}
 
 	@Override
-	public Resolution resolveSelector(DiscoverySelector selector, Context context) {
-		if (selector instanceof ClassSelector) {
-			Class<?> testClass = ((ClassSelector) selector).getJavaClass();
-			if (isTestClassWithTests.test(testClass)) {
-				// Nested tests are never filtered out
-				if (classNameFilter.test(testClass.getName())) {
-					return toResolution(
-						context.addToParent(parent -> Optional.of(newClassTestDescriptor(parent, testClass))));
-				}
+	public Resolution resolve(ClassSelector selector, Context context) {
+		Class<?> testClass = selector.getJavaClass();
+		if (isTestClassWithTests.test(testClass)) {
+			// Nested tests are never filtered out
+			if (classNameFilter.test(testClass.getName())) {
+				return toResolution(
+					context.addToParent(parent -> Optional.of(newClassTestDescriptor(parent, testClass))));
 			}
-			else if (isNestedTestClass.test(testClass)) {
-				return toResolution(context.addToParent(() -> selectClass(testClass.getEnclosingClass()),
-					parent -> Optional.of(newNestedClassTestDescriptor(parent, testClass))));
-			}
+		}
+		else if (isNestedTestClass.test(testClass)) {
+			return toResolution(context.addToParent(() -> selectClass(testClass.getEnclosingClass()),
+				parent -> Optional.of(newNestedClassTestDescriptor(parent, testClass))));
 		}
 		return unresolved();
 	}
 
 	@Override
-	public Resolution resolveUniqueId(UniqueId uniqueId, Context context) {
+	public Resolution resolve(UniqueIdSelector selector, Context context) {
+		UniqueId uniqueId = selector.getUniqueId();
 		UniqueId.Segment lastSegment = uniqueId.getLastSegment();
 		if (ClassTestDescriptor.SEGMENT_TYPE.equals(lastSegment.getType())) {
 			String className = lastSegment.getValue();

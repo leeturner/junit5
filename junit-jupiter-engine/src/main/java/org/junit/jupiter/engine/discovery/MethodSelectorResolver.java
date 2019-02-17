@@ -44,6 +44,7 @@ import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.MethodSelector;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
 
 class MethodSelectorResolver implements SelectorResolver {
@@ -58,14 +59,7 @@ class MethodSelectorResolver implements SelectorResolver {
 	}
 
 	@Override
-	public Resolution resolveSelector(DiscoverySelector selector, Context context) {
-		if (selector instanceof MethodSelector) {
-			return resolveMethodSelector((MethodSelector) selector, context);
-		}
-		return unresolved();
-	}
-
-	private Resolution resolveMethodSelector(MethodSelector selector, Context context) {
+	public Resolution resolve(MethodSelector selector, Context context) {
 		// @formatter:off
 		Set<Match> matches = Arrays.stream(MethodType.values())
 				.map(methodType -> methodType.resolveMethodSelector(selector, context, configuration))
@@ -89,7 +83,8 @@ class MethodSelectorResolver implements SelectorResolver {
 	}
 
 	@Override
-	public Resolution resolveUniqueId(UniqueId uniqueId, Context context) {
+	public Resolution resolve(UniqueIdSelector selector, Context context) {
+		UniqueId uniqueId = selector.getUniqueId();
 		// @formatter:off
 		return Arrays.stream(MethodType.values())
 				.map(methodType -> methodType.resolveUniqueIdIntoTestDescriptor(uniqueId, context, configuration))

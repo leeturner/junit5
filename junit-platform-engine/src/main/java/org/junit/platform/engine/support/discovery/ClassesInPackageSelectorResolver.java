@@ -11,8 +11,9 @@
 package org.junit.platform.engine.support.discovery;
 
 import static org.junit.platform.commons.support.ReflectionSupport.findAllClassesInPackage;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClasses;
+import static org.junit.platform.engine.support.discovery.SelectorResolver.Resolution.selectors;
 
-import java.util.List;
 import java.util.function.Predicate;
 
 import org.junit.platform.engine.discovery.PackageSelector;
@@ -20,15 +21,20 @@ import org.junit.platform.engine.discovery.PackageSelector;
 /**
  * @since 1.4
  */
-class ClassesInPackageSelectorResolver extends ClasspathScanningSelectorResolver<PackageSelector> {
+class ClassesInPackageSelectorResolver implements SelectorResolver {
+
+	private final Predicate<String> classNameFilter;
+	private final Predicate<Class<?>> classFilter;
 
 	ClassesInPackageSelectorResolver(Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
-		super(PackageSelector.class, classNameFilter, classFilter);
+		this.classNameFilter = classNameFilter;
+		this.classFilter = classFilter;
 	}
 
 	@Override
-	protected List<Class<?>> findClasses(PackageSelector selector) {
-		return findAllClassesInPackage(selector.getPackageName(), this.classFilter, this.classNameFilter);
+	public Resolution resolve(PackageSelector selector, Context context) {
+		return selectors(
+			selectClasses(findAllClassesInPackage(selector.getPackageName(), this.classFilter, this.classNameFilter)));
 	}
 
 }

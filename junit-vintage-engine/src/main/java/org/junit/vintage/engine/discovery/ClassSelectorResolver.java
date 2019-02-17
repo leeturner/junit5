@@ -19,11 +19,11 @@ import java.util.Optional;
 import org.junit.platform.commons.JUnitException;
 import org.junit.platform.commons.util.ClassFilter;
 import org.junit.platform.commons.util.ReflectionUtils;
-import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.UniqueId.Segment;
 import org.junit.platform.engine.discovery.ClassSelector;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
 import org.junit.runner.Runner;
 import org.junit.runners.model.RunnerBuilder;
@@ -43,16 +43,13 @@ class ClassSelectorResolver implements SelectorResolver {
 	}
 
 	@Override
-	public Resolution resolveSelector(DiscoverySelector selector, Context context) {
-		if (selector instanceof ClassSelector) {
-			return resolveTestClass(((ClassSelector) selector).getJavaClass(), context);
-		}
-		return unresolved();
+	public Resolution resolve(ClassSelector selector, Context context) {
+		return resolveTestClass(selector.getJavaClass(), context);
 	}
 
 	@Override
-	public Resolution resolveUniqueId(UniqueId uniqueId, Context context) {
-		Segment lastSegment = uniqueId.getLastSegment();
+	public Resolution resolve(UniqueIdSelector selector, Context context) {
+		Segment lastSegment = selector.getUniqueId().getLastSegment();
 		if (SEGMENT_TYPE_RUNNER.equals(lastSegment.getType())) {
 			String testClassName = lastSegment.getValue();
 			Class<?> testClass = ReflectionUtils.tryToLoadClass(testClassName)//

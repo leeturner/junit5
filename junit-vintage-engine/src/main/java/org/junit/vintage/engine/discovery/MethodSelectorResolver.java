@@ -23,6 +23,7 @@ import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.MethodSelector;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
 import org.junit.runner.Description;
 import org.junit.runner.manipulation.Filter;
@@ -34,24 +35,17 @@ import org.junit.vintage.engine.descriptor.RunnerTestDescriptor;
 class MethodSelectorResolver implements SelectorResolver {
 
 	@Override
-	public Resolution resolveSelector(DiscoverySelector selector, Context context) {
-		if (selector instanceof MethodSelector) {
-			return resolveMethodSelector((MethodSelector) selector, context);
-		}
-		return unresolved();
-	}
-
-	private Resolution resolveMethodSelector(MethodSelector methodSelector, Context context) {
-		Class<?> testClass = methodSelector.getJavaClass();
-		return resolveParentAndAddFilter(context, selectClass(testClass), parent -> toMethodFilter(methodSelector));
+	public Resolution resolve(MethodSelector selector, Context context) {
+		Class<?> testClass = selector.getJavaClass();
+		return resolveParentAndAddFilter(context, selectClass(testClass), parent -> toMethodFilter(selector));
 	}
 
 	@Override
-	public Resolution resolveUniqueId(UniqueId uniqueId, Context context) {
-		for (UniqueId current = uniqueId; !current.getSegments().isEmpty(); current = current.removeLastSegment()) {
+	public Resolution resolve(UniqueIdSelector selector, Context context) {
+		for (UniqueId current = selector.getUniqueId(); !current.getSegments().isEmpty(); current = current.removeLastSegment()) {
 			if (SEGMENT_TYPE_RUNNER.equals(current.getLastSegment().getType())) {
 				return resolveParentAndAddFilter(context, selectUniqueId(current),
-					parent -> toUniqueIdFilter(parent, uniqueId));
+					parent -> toUniqueIdFilter(parent, selector.getUniqueId()));
 			}
 		}
 		return unresolved();

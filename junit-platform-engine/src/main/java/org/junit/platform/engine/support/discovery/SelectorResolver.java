@@ -14,6 +14,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -24,7 +25,16 @@ import org.apiguardian.api.API;
 import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestDescriptor;
-import org.junit.platform.engine.UniqueId;
+import org.junit.platform.engine.discovery.ClassSelector;
+import org.junit.platform.engine.discovery.ClasspathResourceSelector;
+import org.junit.platform.engine.discovery.ClasspathRootSelector;
+import org.junit.platform.engine.discovery.DirectorySelector;
+import org.junit.platform.engine.discovery.FileSelector;
+import org.junit.platform.engine.discovery.MethodSelector;
+import org.junit.platform.engine.discovery.ModuleSelector;
+import org.junit.platform.engine.discovery.PackageSelector;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
+import org.junit.platform.engine.discovery.UriSelector;
 
 /**
  * @since 1.4
@@ -32,9 +42,49 @@ import org.junit.platform.engine.UniqueId;
 @API(status = EXPERIMENTAL, since = "1.4")
 public interface SelectorResolver {
 
-	Resolution resolveSelector(DiscoverySelector selector, Context context);
+	default Resolution resolve(ClasspathResourceSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
 
-	Resolution resolveUniqueId(UniqueId uniqueId, Context context);
+	default Resolution resolve(ClasspathRootSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(ClassSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(DirectorySelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(FileSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(MethodSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(ModuleSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(PackageSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(UniqueIdSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(UriSelector selector, Context context) {
+		return resolve((DiscoverySelector) selector, context);
+	}
+
+	default Resolution resolve(DiscoverySelector selector, Context context) {
+		return Resolution.unresolved();
+	}
 
 	/**
 	 * @since 1.4
@@ -58,7 +108,7 @@ public interface SelectorResolver {
 		private static final Resolution UNRESOLVED = new Resolution(emptySet(), emptySet());
 
 		private final Set<Match> matches;
-		private final Set<? extends DiscoverySelector> additionalSelectors;
+		private final Collection<? extends DiscoverySelector> additionalSelectors;
 
 		public static Resolution unresolved() {
 			return UNRESOLVED;
@@ -74,13 +124,13 @@ public interface SelectorResolver {
 			return new Resolution(matches, emptySet());
 		}
 
-		public static Resolution selectors(Set<? extends DiscoverySelector> selectors) {
+		public static Resolution selectors(Collection<? extends DiscoverySelector> selectors) {
 			Preconditions.containsNoNullElements(selectors, "selectors must not contain null elements");
 			Preconditions.notEmpty(selectors, "selectors must not be empty");
 			return new Resolution(emptySet(), selectors);
 		}
 
-		private Resolution(Set<Match> matches, Set<? extends DiscoverySelector> additionalSelectors) {
+		private Resolution(Set<Match> matches, Collection<? extends DiscoverySelector> additionalSelectors) {
 			this.matches = matches;
 			this.additionalSelectors = additionalSelectors;
 		}
@@ -93,7 +143,7 @@ public interface SelectorResolver {
 			return matches;
 		}
 
-		public Set<? extends DiscoverySelector> getAdditionalSelectors() {
+		public Collection<? extends DiscoverySelector> getAdditionalSelectors() {
 			return additionalSelectors;
 		}
 	}

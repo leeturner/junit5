@@ -11,8 +11,9 @@
 package org.junit.platform.engine.support.discovery;
 
 import static org.junit.platform.commons.support.ReflectionSupport.findAllClassesInModule;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClasses;
+import static org.junit.platform.engine.support.discovery.SelectorResolver.Resolution.selectors;
 
-import java.util.List;
 import java.util.function.Predicate;
 
 import org.junit.platform.engine.discovery.ModuleSelector;
@@ -20,15 +21,20 @@ import org.junit.platform.engine.discovery.ModuleSelector;
 /**
  * @since 1.4
  */
-class ClassesInModuleSelectorResolver extends ClasspathScanningSelectorResolver<ModuleSelector> {
+class ClassesInModuleSelectorResolver implements SelectorResolver {
+
+	private final Predicate<String> classNameFilter;
+	private final Predicate<Class<?>> classFilter;
 
 	ClassesInModuleSelectorResolver(Predicate<String> classNameFilter, Predicate<Class<?>> classFilter) {
-		super(ModuleSelector.class, classNameFilter, classFilter);
+		this.classNameFilter = classNameFilter;
+		this.classFilter = classFilter;
 	}
 
 	@Override
-	protected List<Class<?>> findClasses(ModuleSelector selector) {
-		return findAllClassesInModule(selector.getModuleName(), this.classFilter, this.classNameFilter);
+	public Resolution resolve(ModuleSelector selector, Context context) {
+		return selectors(
+			selectClasses(findAllClassesInModule(selector.getModuleName(), this.classFilter, this.classNameFilter)));
 	}
 
 }
