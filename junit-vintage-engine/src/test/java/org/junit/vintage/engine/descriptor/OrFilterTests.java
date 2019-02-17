@@ -28,7 +28,7 @@ import org.junit.runner.Description;
 import org.junit.runner.manipulation.Filter;
 
 /**
- * @since 5.4
+ * @since 5.5
  */
 class OrFilterTests {
 

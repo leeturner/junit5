@@ -11,18 +11,24 @@
 package org.junit.platform.engine.support.discovery;
 
 import static java.util.stream.Collectors.toCollection;
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.apiguardian.api.API;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.support.filter.ClasspathScanningSupport;
 
+/**
+ * @since 1.5
+ */
+@API(status = EXPERIMENTAL, since = "1.5")
 public class EngineDiscoveryRequestResolver<T extends TestDescriptor> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EngineDiscoveryRequestResolver.class);
@@ -52,6 +58,10 @@ public class EngineDiscoveryRequestResolver<T extends TestDescriptor> {
 		return new Builder<>();
 	}
 
+	/**
+	 * @since 1.5
+	 */
+	@API(status = EXPERIMENTAL, since = "1.5")
 	public static class Builder<T extends TestDescriptor> {
 
 		private final List<Function<InitializationContext<T>, SelectorResolver>> resolverCreators = new ArrayList<>();
@@ -85,12 +95,18 @@ public class EngineDiscoveryRequestResolver<T extends TestDescriptor> {
 		}
 	}
 
+	/**
+	 * @since 1.5
+	 */
+	@API(status = EXPERIMENTAL, since = "1.5")
 	public interface InitializationContext<T extends TestDescriptor> {
+
 		EngineDiscoveryRequest getDiscoveryRequest();
 
 		T getEngineDescriptor();
 
 		Predicate<String> getClassNameFilter();
+
 	}
 
 	private static class DefaultInitializationContext<T extends TestDescriptor> implements InitializationContext<T> {

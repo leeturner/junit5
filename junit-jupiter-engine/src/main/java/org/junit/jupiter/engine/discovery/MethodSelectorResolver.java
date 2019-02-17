@@ -47,6 +47,9 @@ import org.junit.platform.engine.discovery.MethodSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
 
+/**
+ * @since 5.5
+ */
 class MethodSelectorResolver implements SelectorResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(MethodSelectorResolver.class);

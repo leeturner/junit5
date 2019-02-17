@@ -31,6 +31,9 @@ import org.junit.platform.commons.util.BlacklistedExceptions;
 import org.junit.platform.commons.util.ReflectionUtils;
 import org.junit.platform.engine.TestDescriptor;
 
+/**
+ * @since 5.5
+ */
 class MethodOrderingVisitor implements TestDescriptor.Visitor {
 
 	private static final Logger logger = LoggerFactory.getLogger(MethodOrderingVisitor.class);

@@ -182,9 +182,9 @@ public class UniqueId implements Cloneable, Serializable {
 	 * @throws org.junit.platform.commons.util.PreconditionViolationException
 	 * if this {@code UniqueId} contains a single segment
 	 * @return a new {@code UniqueId}; never {@code null}
-	 * @since 1.4
+	 * @since 1.5
 	 */
-	@API(status = STABLE, since = "1.4")
+	@API(status = STABLE, since = "1.5")
 	public UniqueId removeLastSegment() {
 		Preconditions.condition(this.segments.size() > 1, "Cannot remove last remaining segment");
 		return new UniqueId(uniqueIdFormat, new ArrayList<>(segments.subList(0, segments.size() - 1)));
@@ -194,9 +194,9 @@ public class UniqueId implements Cloneable, Serializable {
 	 * Get the last {@link Segment} of this {@code UniqueId}.
 	 *
 	 * @return the last {@code Segment}; never {@code null}
-	 * @since 1.4
+	 * @since 1.5
 	 */
-	@API(status = STABLE, since = "1.4")
+	@API(status = STABLE, since = "1.5")
 	public Segment getLastSegment() {
 		return this.segments.get(this.segments.size() - 1);
 	}

@@ -25,7 +25,7 @@ import org.junit.platform.engine.discovery.ModuleSelector;
 import org.junit.platform.engine.discovery.PackageSelector;
 
 /**
- * @since 1.4
+ * @since 1.5
  */
 class ClassContainerSelectorResolver implements SelectorResolver {
 

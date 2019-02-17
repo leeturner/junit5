@@ -36,9 +36,9 @@ import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.discovery.UriSelector;
 
 /**
- * @since 1.4
+ * @since 1.5
  */
-@API(status = EXPERIMENTAL, since = "1.4")
+@API(status = EXPERIMENTAL, since = "1.5")
 public interface SelectorResolver {
 
 	default Resolution resolve(ClasspathResourceSelector selector, Context context) {
@@ -86,9 +86,9 @@ public interface SelectorResolver {
 	}
 
 	/**
-	 * @since 1.4
+	 * @since 1.5
 	 */
-	@API(status = EXPERIMENTAL, since = "1.4")
+	@API(status = EXPERIMENTAL, since = "1.5")
 	interface Context {
 		Optional<TestDescriptor> resolve(DiscoverySelector selector);
 
@@ -99,9 +99,9 @@ public interface SelectorResolver {
 	}
 
 	/**
-	 * @since 1.4
+	 * @since 1.5
 	 */
-	@API(status = EXPERIMENTAL, since = "1.4")
+	@API(status = EXPERIMENTAL, since = "1.5")
 	class Resolution {
 
 		private static final Resolution UNRESOLVED = new Resolution(emptySet(), emptySet());
@@ -148,9 +148,9 @@ public interface SelectorResolver {
 	}
 
 	/**
-	 * @since 1.4
+	 * @since 1.5
 	 */
-	@API(status = EXPERIMENTAL, since = "1.4")
+	@API(status = EXPERIMENTAL, since = "1.5")
 	class Match {
 		private final TestDescriptor testDescriptor;
 		private final Supplier<Set<? extends DiscoverySelector>> childSelectorsSupplier;

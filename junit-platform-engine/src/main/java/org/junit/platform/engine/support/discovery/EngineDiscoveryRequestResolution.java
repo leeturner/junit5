@@ -47,6 +47,9 @@ import org.junit.platform.engine.support.discovery.SelectorResolver.Context;
 import org.junit.platform.engine.support.discovery.SelectorResolver.Match;
 import org.junit.platform.engine.support.discovery.SelectorResolver.Resolution;
 
+/**
+ * @since 1.5
+ */
 class EngineDiscoveryRequestResolution {
 
 	private final Logger logger;

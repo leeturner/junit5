@@ -35,7 +35,7 @@ import org.junit.vintage.engine.samples.junit4.PlainJUnit4TestCaseWithFiveTestMe
 /**
  * Tests for {@link RunnerTestDescriptorPostProcessor}.
  *
- * @since 5.4
+ * @since 5.5
  */
 @TrackLogRecords
 class RunnerTestDescriptorPostProcessorTests {
