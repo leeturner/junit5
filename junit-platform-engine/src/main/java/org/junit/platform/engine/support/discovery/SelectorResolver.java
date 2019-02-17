@@ -34,8 +34,6 @@ import org.junit.platform.engine.UniqueId;
 @API(status = EXPERIMENTAL, since = "1.4")
 public interface SelectorResolver {
 
-	Set<Class<? extends DiscoverySelector>> getSupportedSelectorTypes();
-
 	Optional<Result> resolveSelector(DiscoverySelector selector, Context context);
 
 	Optional<Result> resolveUniqueId(UniqueId uniqueId, Context context);

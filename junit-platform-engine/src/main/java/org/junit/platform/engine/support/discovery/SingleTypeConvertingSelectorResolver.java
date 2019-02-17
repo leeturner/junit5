@@ -10,7 +10,6 @@
 
 package org.junit.platform.engine.support.discovery;
 
-import static java.util.Collections.singleton;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 import java.util.Collections;
@@ -30,11 +29,6 @@ public abstract class SingleTypeConvertingSelectorResolver<T extends DiscoverySe
 
 	public SingleTypeConvertingSelectorResolver(Class<T> selectorClass) {
 		this.selectorClass = selectorClass;
-	}
-
-	@Override
-	public Set<Class<? extends DiscoverySelector>> getSupportedSelectorTypes() {
-		return singleton(selectorClass);
 	}
 
 	@Override

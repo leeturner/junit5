@@ -11,7 +11,6 @@
 package org.junit.jupiter.engine.discovery;
 
 import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectUniqueId;
@@ -53,11 +52,6 @@ class MethodSelectorResolver implements SelectorResolver {
 
 	MethodSelectorResolver(JupiterConfiguration configuration) {
 		this.configuration = configuration;
-	}
-
-	@Override
-	public Set<Class<? extends DiscoverySelector>> getSupportedSelectorTypes() {
-		return singleton(MethodSelector.class);
 	}
 
 	@Override

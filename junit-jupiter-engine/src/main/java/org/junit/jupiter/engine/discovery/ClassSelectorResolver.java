@@ -10,7 +10,6 @@
 
 package org.junit.jupiter.engine.discovery;
 
-import static java.util.Collections.singleton;
 import static java.util.function.Predicate.isEqual;
 import static java.util.stream.Collectors.toCollection;
 import static org.junit.jupiter.engine.discovery.predicates.IsTestClassWithTests.isTestOrTestFactoryOrTestTemplateMethod;
@@ -53,11 +52,6 @@ class ClassSelectorResolver implements SelectorResolver {
 	ClassSelectorResolver(Predicate<String> classNameFilter, JupiterConfiguration configuration) {
 		this.classNameFilter = classNameFilter;
 		this.configuration = configuration;
-	}
-
-	@Override
-	public Set<Class<? extends DiscoverySelector>> getSupportedSelectorTypes() {
-		return singleton(ClassSelector.class);
 	}
 
 	@Override

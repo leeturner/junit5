@@ -10,14 +10,12 @@
 
 package org.junit.vintage.engine.discovery;
 
-import static java.util.Collections.singleton;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectUniqueId;
 import static org.junit.vintage.engine.descriptor.VintageTestDescriptor.SEGMENT_TYPE_RUNNER;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 
 import org.junit.platform.engine.DiscoverySelector;
@@ -33,11 +31,6 @@ import org.junit.vintage.engine.descriptor.RunnerTestDescriptor;
  * @since 4.12
  */
 class MethodSelectorResolver implements SelectorResolver {
-
-	@Override
-	public Set<Class<? extends DiscoverySelector>> getSupportedSelectorTypes() {
-		return singleton(MethodSelector.class);
-	}
 
 	@Override
 	public Optional<Result> resolveSelector(DiscoverySelector selector, Context context) {

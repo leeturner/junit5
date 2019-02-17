@@ -11,11 +11,9 @@
 package org.junit.vintage.engine.discovery;
 
 import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 import static org.junit.vintage.engine.descriptor.VintageTestDescriptor.SEGMENT_TYPE_RUNNER;
 
 import java.util.Optional;
-import java.util.Set;
 
 import org.junit.platform.commons.JUnitException;
 import org.junit.platform.commons.util.ClassFilter;
@@ -41,11 +39,6 @@ class ClassSelectorResolver implements SelectorResolver {
 
 	ClassSelectorResolver(ClassFilter classFilter) {
 		this.classFilter = classFilter;
-	}
-
-	@Override
-	public Set<Class<? extends DiscoverySelector>> getSupportedSelectorTypes() {
-		return singleton(ClassSelector.class);
 	}
 
 	@Override

@@ -14,10 +14,8 @@ import static java.util.stream.Collectors.joining;
 import static org.junit.platform.commons.util.BlacklistedExceptions.rethrowIfBlacklisted;
 import static org.junit.platform.commons.util.CollectionUtils.getOnlyElement;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +26,6 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.junit.platform.commons.JUnitException;
 import org.junit.platform.commons.logging.Logger;
@@ -66,27 +63,11 @@ class EngineDiscoveryRequestResolution {
 	}
 
 	void run() {
-		// @formatter:off
-		getSupportedSelectorTypes().stream()
-				.map(request::getSelectorsByType)
-				.flatMap(Collection::stream)
-				.forEach(remainingSelectors::add);
-		// @formatter:on
+		remainingSelectors.addAll(request.getSelectorsByType(DiscoverySelector.class));
 		while (!remainingSelectors.isEmpty()) {
 			resolveCompletely(remainingSelectors.poll());
 		}
 		visitors.forEach(engineDescriptor::accept);
-	}
-
-	private Set<Class<? extends DiscoverySelector>> getSupportedSelectorTypes() {
-		// @formatter:off
-		Set<Class<? extends DiscoverySelector>> selectorTypes = resolvers.stream()
-				.map(SelectorResolver::getSupportedSelectorTypes)
-				.flatMap(Collection::stream)
-				.collect(Collectors.toCollection(LinkedHashSet::new));
-		// @formatter:on
-		selectorTypes.add(UniqueIdSelector.class);
-		return selectorTypes;
 	}
 
 	private void resolveCompletely(DiscoverySelector selector) {
