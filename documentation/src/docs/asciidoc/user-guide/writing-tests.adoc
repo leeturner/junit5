@@ -1172,6 +1172,9 @@ entirely _empty_ value is interpreted as a `null` reference. An
 `ArgumentConversionException` is raised if the target type of a `null` reference is a
 primitive type.
 
+It is possible to comment out arbitrary lines in CSV files by using a `#` symbol at the
+beginning of the comment lines.
+
 [[writing-tests-parameterized-tests-sources-ArgumentsSource]]
 ===== @ArgumentsSource
 
