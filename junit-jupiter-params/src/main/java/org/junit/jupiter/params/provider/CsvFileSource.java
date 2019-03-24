@@ -26,7 +26,9 @@ import org.apiguardian.api.API;
  * resources}.
  *
  * <p>The lines of these CSV files will be provided as arguments to the
- * annotated {@code @ParameterizedTest} method.
+ * annotated {@code @ParameterizedTest} method. It is possible to comment
+ * out arbitrary lines in the CSV files by using a # symbol at the beginning of
+ * the comment lines.
  *
  * @since 5.0
  * @see CsvSource
